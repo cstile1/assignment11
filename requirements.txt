@@ -41,3 +41,7 @@ tomlkit==0.13.2
 typing_extensions==4.12.2
 urllib3==2.2.3
 uvicorn==0.32.0
+faker==33.3.0
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+pydantic[email]==2.9.2
