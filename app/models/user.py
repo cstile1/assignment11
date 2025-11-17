@@ -11,7 +11,7 @@ from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 
 from sqlalchemy.exc import IntegrityError
-from passlib.context import CryptContext
+
 from jose import JWTError, jwt
 from pydantic import ValidationError
 
@@ -22,7 +22,7 @@ from app.database import Base
 
 from sqlalchemy.orm import relationship
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 # Move to config
 SECRET_KEY = "your-secret-key"
