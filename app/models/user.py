@@ -16,6 +16,8 @@ from app.schemas.user import UserResponse, Token
 
 from app.database import Base
 
+from sqlalchemy.orm import relationship
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Move to config
@@ -38,13 +40,24 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    # Relationship to calculations
+    calculations = relationship(
+        "Calculation",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+
     def __repr__(self):
         return f"<User(name={self.first_name} {self.last_name}, email={self.email})>"
 
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password using bcrypt."""
+        if len(password) > 72:
+            password = password[:72]  # bcrypt limit fix
         return pwd_context.hash(password)
+
 
     def verify_password(self, plain_password: str) -> bool:
         """Verify a plain password against the hashed password."""
