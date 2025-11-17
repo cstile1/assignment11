@@ -1,4 +1,8 @@
 # app/models/user.py
+
+import warnings
+warnings.filterwarnings("ignore", message="error reading bcrypt version")
+
 from datetime import datetime, timedelta
 import uuid
 from typing import Optional, Dict, Any
@@ -53,15 +57,31 @@ class User(Base):
 
     @staticmethod
     def hash_password(password: str) -> str:
-        """Hash a password using bcrypt."""
-        if len(password) > 72:
-            password = password[:72]  # bcrypt limit fix
-        return pwd_context.hash(password)
+        """Hash a password using bcrypt with 72-byte safety on all platforms."""
+        # ensure string type
+        if not isinstance(password, str):
+            password = str(password)
+        # bcrypt counts BYTES, not characters → encode first
+        password_bytes = password.encode("utf-8")
+        if len(password_bytes) > 72:
+            password_bytes = password_bytes[:72]
+        # decode back to plain str before hashing
+        safe_password = password_bytes.decode("utf-8", errors="ignore")
+        # directly call bcrypt backend to avoid re-encoding surprises
+        import bcrypt
+        hashed = bcrypt.hashpw(safe_password.encode("utf-8"), bcrypt.gensalt())
+        return hashed.decode("utf-8")
 
 
     def verify_password(self, plain_password: str) -> bool:
         """Verify a plain password against the hashed password."""
-        return pwd_context.verify(plain_password, self.password)
+        import bcrypt
+        # handle byte limit the same way
+        plain_bytes = plain_password.encode("utf-8")
+        if len(plain_bytes) > 72:
+            plain_bytes = plain_bytes[:72]
+        return bcrypt.checkpw(plain_bytes, self.password.encode("utf-8"))
+
 
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
